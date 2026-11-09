@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950 text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Database Systems Final Exam - Mobile Edition</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            500: '#0284c7',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        body { 
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
+    </style>
+</head>
+<body class="h-full flex flex-col antialiased selection:bg-sky-500 selection:text-white bg-slate-950 text-slate-100">
+
+    <!-- COMPACT STICKY MOBILE TOP HEADER -->
+    <header class="border-b border-slate-800 bg-slate-900/95 backdrop-blur sticky top-0 z-30 px-3 py-2.5 flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+            <div class="bg-sky-600 text-white p-1.5 rounded-lg text-sm shadow">
+                <i class="fa-solid fa-database"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-xs sm:text-sm text-slate-100 leading-tight">INSC 2105: Intro to DB</h1>
+                <p id="questionProgressText" class="text-[11px] text-sky-400 font-medium">Q 1 of 50 &bull; 0 Answered</p>
+            </div>
+        </div>
+
+        <!-- Timer & Palette Trigger -->
+        <div class="flex items-center space-x-2">
+            <div class="flex items-center space-x-1.5 bg-slate-800 border border-slate-700/80 px-2.5 py-1 rounded-md text-slate-200">
+                <i class="fa-regular fa-clock text-sky-400 text-xs"></i>
+                <span id="timer" class="font-mono font-bold text-xs">60:00</span>
+            </div>
+            <button id="openPaletteBtn" class="p-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sky-400 rounded-md text-xs font-semibold flex items-center space-x-1 active:scale-95 transition-all">
+                <i class="fa-solid fa-th"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- MOBILE PROGRESS BAR -->
+    <div class="w-full bg-slate-800 h-1.5">
+        <div id="progressBar" class="bg-gradient-to-r from-sky-500 to-cyan-400 h-1.5 transition-all duration-300 w-[2%]"></div>
+    </div>
+
+    <!-- MAIN SCROLLABLE QUESTION AREA -->
+    <main class="flex-1 overflow-y-auto p-3.5 pb-24 custom-scrollbar max-w-lg mx-auto w-full">
+        
+        <!-- ACTIVE QUESTION CONTAINER -->
+        <div id="questionCard" class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-xl space-y-4">
+            <!-- Content Injected dynamically via JS -->
+        </div>
+
+        <!-- RESULTS CONTAINER (HIDDEN UNTIL SUBMISSION) -->
+        <div id="resultsContainer" class="hidden space-y-4">
+            <!-- Score Banner -->
+            <div id="scoreBanner" class="bg-slate-900 border border-slate-800 rounded-xl p-5 text-center space-y-3 shadow-xl">
+                <span class="text-[10px] font-extrabold uppercase tracking-widest text-sky-400 bg-sky-950 border border-sky-800 px-2.5 py-1 rounded-full">Exam Result</span>
+                <div class="py-2">
+                    <span class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-cyan-300 font-mono" id="scoreDisplay">0 / 50</span>
+                    <p class="text-xs font-bold text-slate-400 mt-1" id="percentageDisplay">0% Score</p>
+                </div>
+                <h2 class="text-xl font-bold text-slate-100" id="scoreVerdict">Completed!</h2>
+                <p class="text-xs text-slate-400 leading-relaxed" id="scoreFeedback">Detailed evaluation based on Chapters 1 & 2 module content.</p>
+            </div>
+
+            <!-- Review Filter & Items -->
+            <div class="space-y-3">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-2.5 px-1">
+                    <h3 class="text-sm font-bold text-slate-200 flex items-center gap-1.5">
+                        <i class="fa-solid fa-book-open text-sky-400 text-xs"></i>
+                        <span>Detailed Review</span>
+                    </h3>
+                    <div class="flex items-center space-x-1">
+                        <button id="filterAll" class="px-2.5 py-1 rounded text-[11px] bg-sky-600 text-white font-semibold">All</button>
+                        <button id="filterIncorrect" class="px-2.5 py-1 rounded text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold">Incorrect</button>
+                    </div>
+                </div>
+
+                <div id="reviewList" class="space-y-4">
+                    <!-- Dynamic review questions injected here -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- STICKY BOTTOM MOBILE THUMB NAVIGATION BAR -->
+    <div id="mobileBottomNav" class="fixed bottom-0 left-0 right-0 border-t border-slate-800 bg-slate-900/95 backdrop-blur z-20 px-3 py-2.5 flex items-center justify-between max-w-lg mx-auto">
+        <button id="prevBtn" onclick="prevQuestion()" class="min-h-[44px] px-4 text-xs font-bold rounded-lg border border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700 active:scale-95 transition-all flex items-center space-x-1.5">
+            <i class="fa-solid fa-chevron-left"></i>
+            <span>Prev</span>
+        </button>
+
+        <button id="submitExamBtn" onclick="openSubmitModal()" class="min-h-[44px] px-3.5 text-xs font-extrabold rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg active:scale-95 transition-all flex items-center space-x-1.5">
+            <i class="fa-solid fa-paper-plane"></i>
+            <span>Submit</span>
+        </button>
+
+        <button id="nextBtn" onclick="nextQuestion()" class="min-h-[44px] px-4 text-xs font-bold rounded-lg bg-sky-600 hover:bg-sky-500 text-white shadow-lg active:scale-95 transition-all flex items-center space-x-1.5">
+            <span>Next</span>
+            <i class="fa-solid fa-chevron-right"></i>
+        </button>
+    </div>
+
+    <!-- MODAL QUESTION PALETTE NAVIGATOR -->
+    <div id="paletteModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 hidden flex flex-col justify-end">
+        <div class="bg-slate-900 border-t border-slate-800 rounded-t-2xl max-h-[85vh] flex flex-col p-4 space-y-3 shadow-2xl">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-th-large text-sky-400"></i>
+                    <h3 class="text-sm font-bold text-slate-100">Question Palette (50 Items)</h3>
+                </div>
+                <button id="closePaletteBtn" class="p-1 text-slate-400 hover:text-slate-100 text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Legend -->
+            <div class="flex items-center justify-around text-[10px] text-slate-400 py-1 bg-slate-950/50 rounded-lg border border-slate-800">
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-slate-800 border border-slate-600"></span> Unanswered</span>
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-sky-600"></span> Answered</span>
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-sky-400 ring-2 ring-sky-300"></span> Current</span>
+            </div>
+
+            <!-- 50 Grid Buttons -->
+            <div id="questionGrid" class="grid grid-cols-5 sm:grid-cols-10 gap-2 overflow-y-auto custom-scrollbar p-1 max-h-[55vh]">
+                <!-- Dynamic Palette Buttons -->
+            </div>
+        </div>
+    </div>
+
+    <!-- CONFIRM SUBMIT MODAL -->
+    <div id="submitModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl max-w-sm w-full p-4 shadow-2xl space-y-3">
+            <div class="flex items-center space-x-2 text-amber-400">
+                <i class="fa-solid fa-circle-exclamation text-xl"></i>
+                <h3 class="text-sm font-bold text-slate-100">Confirm Exam Submission</h3>
+            </div>
+            <p id="modalWarningText" class="text-xs text-slate-300 leading-relaxed">Are you sure you want to finish and submit your exam?</p>
+            <div class="flex items-center justify-end space-x-2 pt-3 border-t border-slate-800">
+                <button id="cancelModalBtn" class="px-3.5 py-2 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg">Continue</button>
+                <button id="confirmSubmitBtn" class="px-4 py-2 text-xs font-bold bg-sky-600 hover:bg-sky-500 text-white rounded-lg shadow-lg">Submit Now</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- EXAM ENGINE SCRIPT -->
+    <script>
+        // --- 50 HARD MULTIPLE-CHOICE QUESTIONS (CHAPTERS 1 & 2) ---
+        const examQuestions = [
+            {
+                id: 1,
+                question: "In the manual data handling approach, which specific limitation makes cross-referencing and compiling organizational summaries exceptionally difficult?",
+                options: [
+                    "A. Lack of physical cabinet lockers for data security.",
+                    "B. Physical storage of information across separate labeled paper files in cabinets without integrated indexing or automated processing.",
+                    "C. Mandatory reliance on procedural host languages like COBOL.",
+                    "D. Automatic deletion of duplicate records across file cabinets."
+                ],
+                correct: 1,
+                explanation: "Manual approach relies on paper forms stored in physical cabinets. Compiling and cross-referencing between separate paper files is highly error-prone and difficult because there is no automated data integration (Slide 7)."
+            },
+            {
+                id: 2,
+                question: "Which limitation of the traditional file-based approach occurs when programs are written in different programming languages (e.g. C vs. COBOL) with incompatible file structures?",
+                options: [
+                    "A. Program-Data Dependence",
+                    "B. Incompatible File Formats",
+                    "C. Uncontrolled Data Redundancy",
+                    "D. Proliferation of Application Programs"
+                ],
+                correct: 1,
+                explanation: "Incompatible File Formats occurs because application programs written in different programming languages define data structures differently, preventing easy data sharing (Slide 12)."
+            },
+            {
+                id: 3,
+                question: "What fundamental architectural flaw in the file-based approach directly led to the development of the Database Management System (DBMS)?",
+                options: [
+                    "A. Network host hardware lacked multi-core central processing units.",
+                    "B. Data definitions were embedded inside individual application programs rather than stored separately in a system catalog.",
+                    "C. Operating system buffer pools were too small.",
+                    "D. Relational tables enforced foreign key constraints strictly."
+                ],
+                correct: 1,
+                explanation: "File-based approach problems arose because data definitions were embedded in application programs, rather than being stored independently in a catalog (Slide 13)."
+            },
+            {
+                id: 4,
+                question: "In a DBMS environment with five basic components (Hardware, Software, Data, Procedures, People), which two fall under the 'Machine' boundary?",
+                options: [
+                    "A. Procedures and People",
+                    "B. Software and Data",
+                    "C. Hardware and Software",
+                    "D. Hardware and Procedures"
+                ],
+                correct: 2,
+                explanation: "Machine boundary = Hardware and Software; Human boundary = Procedures and People; Data acts as the Bridge connecting Machine and Human (Slide 23)."
+            },
+            {
+                id: 5,
+                question: "Which database role focuses on non-technical enterprise data resource planning, establishing policies, and conceptual/logical design standards?",
+                options: [
+                    "A. Database Administrator (DBA)",
+                    "B. Data Administrator (DA)",
+                    "C. Physical Database Designer",
+                    "D. Application Programmer"
+                ],
+                correct: 1,
+                explanation: "Data Administrator (DA) is responsible for data resource management, database planning, and policies during conceptual/logical design. DBA is the technical role responsible for physical realization (Slide 26)."
+            },
+            {
+                id: 6,
+                question: "During which database design phase does a designer select target DBMS-dependent table layouts, storage structures, access paths, and security measures?",
+                options: [
+                    "A. Conceptual Design Phase",
+                    "B. Requirement Specification Phase",
+                    "C. Physical Design Phase",
+                    "D. External View Specification Phase"
+                ],
+                correct: 2,
+                explanation: "Physical Database Designers take logical specs and decide how they are physically realized on the chosen DBMS, selecting storage structures and access paths (Slide 28)."
+            },
+            {
+                id: 7,
+                question: "Middle-to-high level managers who access a database occasionally, requiring different custom reports each time via high-level query tools, are classified as:",
+                options: [
+                    "A. Naïve Users",
+                    "B. Sophisticated Users",
+                    "C. Casual Users",
+                    "D. Application Programmers"
+                ],
+                correct: 2,
+                explanation: "Casual Users access the database occasionally, needing different information each time, and use sophisticated queries to satisfy their needs (Slide 30)."
+            },
+            {
+                id: 8,
+                question: "Which generation of DBMS development introduced Object-Oriented (OODBMS) and Object-Relational (ORDBMS) systems?",
+                options: [
+                    "A. First Generation",
+                    "B. Second Generation",
+                    "C. Third Generation",
+                    "D. Fourth Generation"
+                ],
+                correct: 2,
+                explanation: "1st Generation = Hierarchical & Network; 2nd Generation = Relational; 3rd Generation = Object-Relational & Object-Oriented (Slide 31)."
+            },
+            {
+                id: 9,
+                question: "Which of the following is explicitly listed in lecture notes as a DISADVANTAGE of a DBMS?",
+                options: [
+                    "A. Loss of standards enforcement.",
+                    "B. Inability to provide data backup and recovery.",
+                    "C. Higher impact of a failure due to centralization.",
+                    "D. Incapability of handling multi-user concurrency."
+                ],
+                correct: 2,
+                explanation: "Disadvantages of DBMS include Complexity, Size, Cost, Conversion costs, Performance overhead, and Higher impact of failure due to centralization (Slide 34)."
+            },
+            {
+                id: 10,
+                question: "In the ANSI-SPARC 3-level architecture, which schema represents the community view of the whole database, specifying entity types and relationships without physical storage details?",
+                options: [
+                    "A. External Schema",
+                    "B. Conceptual Schema",
+                    "C. Internal Schema",
+                    "D. Physical Schema"
+                ],
+                correct: 1,
+                explanation: "Conceptual Level/Schema provides the community view of what data is stored and relationships among data, independent of physical storage (Slide 36)."
+            },
+            {
+                id: 11,
+                question: "What is the primary purpose of Conceptual/Internal Mapping in the ANSI-SPARC 3-level architecture?",
+                options: [
+                    "A. Map user view names to conceptual entity names.",
+                    "B. Map logical records in the conceptual schema to physical records/structures on disk, enabling Physical Data Independence.",
+                    "C. Enable DML queries inside compiled C binaries.",
+                    "D. Prevent file-server network bottlenecks."
+                ],
+                correct: 1,
+                explanation: "Conceptual/Internal Mapping enables the DBMS to map conceptual logical records to physical records stored on disk, delivering Physical Data Independence (Slide 43)."
+            },
+            {
+                id: 12,
+                question: "If an administrator alters the conceptual schema by adding a new attribute, but existing user views remain unchanged, what principle is demonstrated?",
+                options: [
+                    "A. Physical Data Independence",
+                    "B. Logical Data Independence",
+                    "C. Procedural Precompilation",
+                    "D. Internal File Mapping"
+                ],
+                correct: 1,
+                explanation: "Logical Data Independence refers to immunity of external schemas to changes in the conceptual schema (Slide 41)."
+            },
+            {
+                id: 13,
+                question: "Which SQL command belongs to Data Control Language (DCL) and removes previously assigned user privileges?",
+                options: [
+                    "A. DROP",
+                    "B. REVOKE",
+                    "C. ROLLBACK",
+                    "D. ALTER"
+                ],
+                correct: 1,
+                explanation: "DCL commands control permissions: GRANT assigns permissions and REVOKE revokes read/write permissions on database objects (Slide 19)."
+            },
+            {
+                id: 14,
+                question: "Which Transaction Control Language (TCL) command is executed to permanently save all changes made during a SQL transaction?",
+                options: [
+                    "A. SAVEPOINT",
+                    "B. BEGIN TRANSACTION",
+                    "C. COMMIT",
+                    "D. ROLLBACK"
+                ],
+                correct: 2,
+                explanation: "TCL commands include BEGIN Transaction, COMMIT (saves transaction modifications), and ROLLBACK (undoes modifications on error) (Slide 19)."
+            },
+            {
+                id: 15,
+                question: "What is the defining characteristic of Fourth Generation Languages (4GLs)?",
+                options: [
+                    "A. Requires writing low-level procedural record-by-record pointer loops.",
+                    "B. Non-procedural tools (such as CASE tools, report generators, and visual query interfaces) allowing rapid development by specifying WHAT data is needed.",
+                    "C. Executes strictly inside internal buffer pools.",
+                    "D. Bypasses the system catalog."
+                ],
+                correct: 1,
+                explanation: "4GLs are non-procedural high-level development tools (e.g. report generators, CASE tools) where users state what data is needed rather than how to retrieve it (Slide 45)."
+            },
+            {
+                id: 16,
+                question: "A Data Model is an integrated collection of concepts for describing data, relationships, and constraints. What three parts make up a complete data model?",
+                options: [
+                    "A. Hardware part, software part, human procedures.",
+                    "B. A structural part, a manipulative part, and a set of integrity rules.",
+                    "C. DDL compiler, DML preprocessor, catalog manager.",
+                    "D. Entity set, tuple list, disk layout."
+                ],
+                correct: 1,
+                explanation: "A Data Model comprises: 1) structural part, 2) manipulative part, and 3) set of integrity rules (Slide 46)."
+            },
+            {
+                id: 17,
+                question: "Which of the following data models is categorized as an Object-Based Data Model?",
+                options: [
+                    "A. Relational Data Model",
+                    "B. Hierarchical Data Model",
+                    "C. Entity-Relationship (ER) Model",
+                    "D. Network Data Model"
+                ],
+                correct: 2,
+                explanation: "Object-Based Data Models include Entity-Relationship (ER) and Object-Oriented models. Record-Based models include Hierarchical, Network, and Relational (Slide 48)."
+            },
+            {
+                id: 18,
+                question: "In the Hierarchical Data Model, how are data relationships physically represented?",
+                options: [
+                    "A. By matching foreign keys in two-dimensional tables.",
+                    "B. By physical links (pointers) between parent segments and child segments in an upside-down tree structure.",
+                    "C. By class inheritance hierarchies.",
+                    "D. By dynamic memory view generation."
+                ],
+                correct: 1,
+                explanation: "Hierarchical models organize record nodes/segments in an inverted tree where relationships are maintained by physical pointer links (Slide 49)."
+            },
+            {
+                id: 19,
+                question: "Why was Dr. Edgar F. Codd's Relational Model (1970) revolutionary compared to 1st Generation pointer-based models?",
+                options: [
+                    "A. It forced programmers to navigate records manually using memory pointers.",
+                    "B. It introduced a declarative set-oriented approach using tables (relations) linked by matching data values, eliminating physical pointers.",
+                    "C. It required dedicated dumb terminals.",
+                    "D. It restricted tables to a single parent node."
+                ],
+                correct: 1,
+                explanation: "Relational model replaced procedural pointer navigation with declarative set theory, organizing data in tables linked by shared data values (Slide 53-54)."
+            },
+            {
+                id: 20,
+                question: "Which DBMS Database Manager component directly checks constraints against the system catalog before committing DML updates?",
+                options: [
+                    "A. Query Optimizer",
+                    "B. Integrity Checker",
+                    "C. Scheduler",
+                    "D. Buffer Manager"
+                ],
+                correct: 1,
+                explanation: "The Integrity Checker component verifies that DML operations satisfy specified integrity constraints (Slide 63)."
+            },
+            {
+                id: 21,
+                question: "In a Multi-User Teleprocessing Architecture, what is the major structural limitation?",
+                options: [
+                    "A. High burden placed on the single central CPU, which executes OS, DBMS, applications, and screen display formatting for dumb terminals.",
+                    "B. High network traffic from transmitting raw files across LANs.",
+                    "C. Need for installing a full DBMS copy on every terminal.",
+                    "D. Inability to enforce security."
+                ],
+                correct: 0,
+                explanation: "Teleprocessing uses a central computer with one CPU connected to dumb terminals, placing a heavy load on the host to process all logic and formatting (Slide 65-66)."
+            },
+            {
+                id: 22,
+                question: "In a File-Server Architecture, where do the application programs and DBMS engine physically execute?",
+                options: [
+                    "A. On the central file server machine.",
+                    "B. Distributed on each workstation requesting files from the central file server.",
+                    "C. Inside dedicated database application server hardware.",
+                    "D. On teleprocessing dumb terminals."
+                ],
+                correct: 1,
+                explanation: "In File-Server environment, the file server acts as a shared disk, while applications AND the DBMS engine execute on each workstation (Slide 67)."
+            },
+            {
+                id: 23,
+                question: "In a Two-Tier Client-Server Architecture, what specific tasks are assigned to the Second Tier (Database Server)?",
+                options: [
+                    "A. User interface rendering and application display.",
+                    "B. Front-end presentation logic.",
+                    "C. Server-side validation and database access control.",
+                    "D. Physical network cabling."
+                ],
+                correct: 2,
+                explanation: "2-Tier Client-Server: First Tier (Client) handles UI and main business logic; Second Tier (Database Server) handles server-side validation and DB access (Slide 72)."
+            },
+            {
+                id: 24,
+                question: "Why does Three-Tier Client-Server Architecture overcome the scalability bottlenecks of Two-Tier systems?",
+                options: [
+                    "A. It removes the Database Server tier completely.",
+                    "B. It moves business and data processing logic to a middle Application Server tier, enabling thin clients and reducing client administration.",
+                    "C. It replaces SQL with procedural file pointers.",
+                    "D. It transfers full database file copies across workstations."
+                ],
+                correct: 1,
+                explanation: "3-Tier architecture offloads business logic from user workstations onto a middle Application Server, solving fat client resource demands (Slide 73-74)."
+            },
+            {
+                id: 25,
+                question: "In relational mathematics, what term defines the set of attribute-domain pairs {A1:D1, A2:D2, ..., An:Dn} defining a table's structure?",
+                options: [
+                    "A. Relation Extension",
+                    "B. Relation Schema (Intension)",
+                    "C. Database Instance",
+                    "D. Database State"
+                ],
+                correct: 1,
+                explanation: "A Relation Schema (Intension) represents the named structural definition of a relation comprising attribute and domain name pairs (Slide 9)."
+            },
+            {
+                id: 26,
+                question: "Given a relation schema: PropertyForRent (propertyNo, street, city, postcode, type, rooms, rent, ownerNo, staffNo, branchNo), what is its DEGREE?",
+                options: [
+                    "A. 1",
+                    "B. 5",
+                    "C. 10",
+                    "D. Dynamic based on row count."
+                ],
+                correct: 2,
+                explanation: "Degree of a relation is the number of attributes (columns). Counting the listed attributes in PropertyForRent yields 10 (Slide 4-5)."
+            },
+            {
+                id: 27,
+                question: "What is the mathematical definition of Cardinality in a database relation?",
+                options: [
+                    "A. The total number of columns/attributes in a relation.",
+                    "B. The total number of rows/tuples in a relation instance.",
+                    "C. The size of the system catalog.",
+                    "D. The number of foreign keys."
+                ],
+                correct: 1,
+                explanation: "Cardinality is the number of tuples (rows) in a relation (Slide 4)."
+            },
+            {
+                id: 28,
+                question: "Which of the following is a fundamental property of formal Database Relations?",
+                options: [
+                    "A. Cells within a row can contain multi-valued arrays.",
+                    "B. Duplicate tuples are permitted.",
+                    "C. Each cell of a relation contains exactly one atomic (single) value.",
+                    "D. The physical order of rows determines logical relationships."
+                ],
+                correct: 2,
+                explanation: "Database relation properties: each cell contains exactly one atomic value, tuples are distinct (no duplicates), and tuple/attribute order is logically irrelevant (Slide 13-14)."
+            },
+            {
+                id: 29,
+                question: "If a table 'Staff' has superkeys K1 = {staffNo} and K2 = {staffNo, fName}, why is K2 NOT a Candidate Key?",
+                options: [
+                    "A. Because staffNo is a string.",
+                    "B. Because K2 violates irreducibility (its proper subset {staffNo} is already a superkey).",
+                    "C. Because fName has duplicates.",
+                    "D. Because K2 violates entity integrity."
+                ],
+                correct: 1,
+                explanation: "A Candidate Key must satisfy Irreducibility (no proper subset can be a superkey). Since {staffNo} alone uniquely identifies tuples, K2 contains an unnecessary extra attribute (Slide 15)."
+            },
+            {
+                id: 30,
+                question: "A candidate key consisting of two or more attributes working together to uniquely identify tuples in a relation is called a:",
+                options: [
+                    "A. Primary Key",
+                    "B. Foreign Key",
+                    "C. Composite Candidate Key",
+                    "D. Alternate Key"
+                ],
+                correct: 2,
+                explanation: "A Candidate Key that has more than one attribute is specifically named a Composite Candidate Key (Slide 15)."
+            },
+            {
+                id: 31,
+                question: "What rule must be enforced regarding Primary Key attributes under Entity Integrity?",
+                options: [
+                    "A. Primary key attributes must be foreign keys in other tables.",
+                    "B. Primary key attributes can be null if alternate keys exist.",
+                    "C. In a base relation, no primary key attribute can be null, and primary key values cannot be duplicate.",
+                    "D. Primary key values must be computed."
+                ],
+                correct: 2,
+                explanation: "Entity Integrity: In a base relation, no attribute of a primary key can be null, and primary key values cannot be duplicate (Slide 18)."
+            },
+            {
+                id: 32,
+                question: "Under Referential Integrity, if a Foreign Key (FK) exists in a child relation, what are the ONLY two valid states its values can take?",
+                options: [
+                    "A. Must match a primary key OR be auto-incremented.",
+                    "B. Must match a candidate key value of some tuple in its home relation OR be wholly null.",
+                    "C. Must be unique across all tables.",
+                    "D. Must match an alternate key."
+                ],
+                correct: 1,
+                explanation: "Referential Integrity: A foreign key value must either match a candidate key value of some tuple in its home relation or be wholly null (Slide 18)."
+            },
+            {
+                id: 33,
+                question: "What does a NULL value represent in a relational database field?",
+                options: [
+                    "A. Numeric zero (0).",
+                    "B. Empty text string ('').",
+                    "C. A value that is currently unknown or not applicable for that tuple.",
+                    "D. A damaged disk sector."
+                ],
+                correct: 2,
+                explanation: "NULL represents a value for an attribute that is currently unknown or not applicable for a given tuple (Slide 19)."
+            },
+            {
+                id: 34,
+                question: "What is the key distinction between a Base Relation and a View?",
+                options: [
+                    "A. Base relations exist in RAM; views exist on disk.",
+                    "B. Base relation tuples are physically stored in the database; a View is a dynamic virtual relation defined as a query on base relations.",
+                    "C. Base relations have schemas; views do not.",
+                    "D. Base relations require 4GL tools."
+                ],
+                correct: 1,
+                explanation: "Base Relation = physically stored named relation. View = dynamic virtual relation defined as a query operating on base relations (Slide 20-21)."
+            },
+            {
+                id: 35,
+                question: "Why are DML updates (INSERT/UPDATE/DELETE) generally RESTRICTED through views involving multiple base relations or aggregations?",
+                options: [
+                    "A. Views do not support DCL grant permissions.",
+                    "B. Modifications through complex views cannot be unambiguously mapped back to individual rows in underlying base tables.",
+                    "C. System catalog does not store view names.",
+                    "D. Views convert atomic fields to composite fields."
+                ],
+                correct: 1,
+                explanation: "Updates through multi-table or aggregated views are disallowed because the DBMS cannot determine unambiguously how to update base physical tuples (Slide 23-24)."
+            },
+            {
+                id: 36,
+                question: "An entity type whose existence depends on another parent entity type (such as a 'Dependent' tied to an 'Employee') is classified as a:",
+                options: [
+                    "A. Strong Entity",
+                    "B. Weak Entity",
+                    "C. Recursive Entity",
+                    "D. Derived Entity"
+                ],
+                correct: 1,
+                explanation: "Weak Entity = an entity that cannot exist without the entity with which it has a relationship (existence dependency) (Slide 26)."
+            },
+            {
+                id: 37,
+                question: "If an employee has multiple phone numbers, how must 'Phone_Number' be modeled in a relational schema to maintain atomic cells?",
+                options: [
+                    "A. As a single-valued string with comma separators.",
+                    "B. As a separate Entity/Table connected by a relationship, because relational attributes cannot be set-valued/multi-valued.",
+                    "C. As a derived primary key.",
+                    "D. As a system view query."
+                ],
+                correct: 1,
+                explanation: "If an attribute has multiple values per entity (multi-valued), it must be modeled as a separate entity/table because relational attributes must be atomic (Slide 31)."
+            },
+            {
+                id: 38,
+                question: "Which attribute type is 'Date_of_Birth' if its value cannot be computed from any other stored attribute in the system?",
+                options: [
+                    "A. Derived Attribute",
+                    "B. Stored Attribute",
+                    "C. Composite Attribute",
+                    "D. Multi-Valued Attribute"
+                ],
+                correct: 1,
+                explanation: "Stored Attribute = an attribute whose value is directly stored because it is not possible to derive or compute it from other attributes (Slide 30)."
+            },
+            {
+                id: 39,
+                question: "In ER modeling, what term describes the number of entity types participating in a single relationship type?",
+                options: [
+                    "A. Cardinality of the relationship",
+                    "B. Degree of the relationship",
+                    "C. Intension of the relationship",
+                    "D. Domain of the relationship"
+                ],
+                correct: 1,
+                explanation: "Degree of a relationship is the number of participating entity types (Unary=1, Binary=2, Ternary=3) (Slide 34)."
+            },
+            {
+                id: 40,
+                question: "What relationship degree is formed when three distinct entity types (Student, Course, Instructor) participate together in one relationship?",
+                options: [
+                    "A. Unary Relationship",
+                    "B. Binary Relationship",
+                    "C. Ternary Relationship",
+                    "D. Recursive Relationship"
+                ],
+                correct: 2,
+                explanation: "Ternary Relationship = an association where records of three different entity types participate together (Slide 34)."
+            },
+            {
+                id: 41,
+                question: "What does a 'One-to-Many (1:M)' cardinality ratio mean between Department and Student entities?",
+                options: [
+                    "A. One department has one student; one student belongs to one department.",
+                    "B. One department can have multiple students, but a student belongs to only one department.",
+                    "C. Many departments share one student.",
+                    "D. Students can exist without a department."
+                ],
+                correct: 1,
+                explanation: "1:M cardinality means one record in entity A (Department) can associate with many records in entity B (Student), but a record in B connects to only one in A (Slide 35)."
+            },
+            {
+                id: 42,
+                question: "Which DBMS Database Manager component is responsible for restoring the database to a consistent state after a crash?",
+                options: [
+                    "A. Authorization Control",
+                    "B. Recovery Manager",
+                    "C. DDL Compiler",
+                    "D. File Manager"
+                ],
+                correct: 1,
+                explanation: "The Recovery Manager (within Data Manager) handles backup, transaction recovery, and restoration of database states following failures (Slide 63)."
+            },
+            {
+                id: 43,
+                question: "Which DBMS component analyzes query paths and selects the most efficient physical access strategy to execute SQL queries?",
+                options: [
+                    "A. Transaction Manager",
+                    "B. Query Optimizer",
+                    "C. Integrity Checker",
+                    "D. Catalog Manager"
+                ],
+                correct: 1,
+                explanation: "The Query Optimizer determines the optimal execution strategy for data retrieval queries (Slide 63)."
+            },
+            {
+                id: 44,
+                question: "What type of Data Manipulation Language (DML) requires application programmers to specify low-level step-by-step navigation algorithms?",
+                options: [
+                    "A. Non-Procedural DML",
+                    "B. Procedural DML",
+                    "C. Declarative DML",
+                    "D. SQL View DML"
+                ],
+                correct: 1,
+                explanation: "Procedural DML allows users to tell the system exactly how to manipulate data step-by-step (Slide 45)."
+            },
+            {
+                id: 45,
+                question: "Which role in the database environment writes application code, tests, debugs, and maintains programs that issue SQL statements to the DBMS?",
+                options: [
+                    "A. System Analyst",
+                    "B. Application Programmer",
+                    "C. Physical Database Designer",
+                    "D. Sophisticated End User"
+                ],
+                correct: 1,
+                explanation: "Application Programmers implement user specifications into programs, writing code, testing, debugging, documenting, and maintaining database software (Slide 29)."
+            },
+            {
+                id: 46,
+                question: "In the ANSI-SPARC 3-level architecture, which level describes physical data storage structures, indexes, and disk file layouts?",
+                options: [
+                    "A. External Level",
+                    "B. Conceptual Level",
+                    "C. Internal Level",
+                    "D. Logical Level"
+                ],
+                correct: 2,
+                explanation: "Internal Level is the physical representation of the database on the computer, describing how data is physically stored (Slide 37)."
+            },
+            {
+                id: 47,
+                question: "Which SQL sublanguage includes statements like CREATE TABLE, ALTER TABLE, and DROP TABLE?",
+                options: [
+                    "A. Data Control Language (DCL)",
+                    "B. Data Definition Language (DDL)",
+                    "C. Data Manipulation Language (DML)",
+                    "D. Transaction Control Language (TCL)"
+                ],
+                correct: 1,
+                explanation: "Data Definition Language (DDL) enables specification, creation, alteration, and removal of database structures (Slide 18)."
+            },
+            {
+                id: 48,
+                question: "Which SQL statement is classified under DML (Data Manipulation Language)?",
+                options: [
+                    "A. GRANT SELECT ON Staff TO Manager;",
+                    "B. CREATE INDEX idx_staff ON Staff(staffNo);",
+                    "C. INSERT INTO Branch VALUES ('B009', 'Main St', 'London', 'E1 6AN');",
+                    "D. COMMIT;"
+                ],
+                correct: 2,
+                explanation: "INSERT (along with SELECT, UPDATE, DELETE) is a Data Manipulation Language (DML) statement (Slide 18-19)."
+            },
+            {
+                id: 49,
+                question: "Which database component stores metadata descriptions of schemas, data types, constraints, user privileges, and usage statistics?",
+                options: [
+                    "A. Application Program Binary",
+                    "B. System Catalog (Data Dictionary)",
+                    "C. OS Page File",
+                    "D. Transaction Buffer"
+                ],
+                correct: 1,
+                explanation: "System Catalog (Data Dictionary) is the metadata repository describing data structures, constraints, user privileges, and statistics (Slide 61)."
+            },
+            {
+                id: 50,
+                question: "In a University System: A Department offers multiple Courses, but each Course belongs to one Department. Deleting a Department removes all its Courses. What property describes 'Course'?",
+                options: [
+                    "A. Independent Strong Entity with Unary loop.",
+                    "B. Existence Dependent Weak Entity on Department.",
+                    "C. Derived Multi-valued Attribute.",
+                    "D. Non-procedural Alternate Key."
+                ],
+                correct: 1,
+                explanation: "Course cannot exist without its parent Department (existence dependency), making Course a weak entity dependent on Department (Slide 26, 39)."
+            }
+        ];
+
+        // --- STATE MANAGEMENT ---
+        let currentQuestionIdx = 0;
+        let userAnswers = new Array(examQuestions.length).fill(null);
+        let examSubmitted = false;
+        let examTimeSeconds = 60 * 60; // 60 mins
+        let timerInterval = null;
+
+        // --- DOM REFERENCES ---
+        const questionCard = document.getElementById('questionCard');
+        const questionGrid = document.getElementById('questionGrid');
+        const questionProgressText = document.getElementById('questionProgressText');
+        const progressBar = document.getElementById('progressBar');
+        const timerDisplay = document.getElementById('timer');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const submitExamBtn = document.getElementById('submitExamBtn');
+        const paletteModal = document.getElementById('paletteModal');
+        const submitModal = document.getElementById('submitModal');
+        const modalWarningText = document.getElementById('modalWarningText');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const reviewList = document.getElementById('reviewList');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const percentageDisplay = document.getElementById('percentageDisplay');
+        const scoreVerdict = document.getElementById('scoreVerdict');
+        const scoreFeedback = document.getElementById('scoreFeedback');
+        const filterAllBtn = document.getElementById('filterAll');
+        const filterIncorrectBtn = document.getElementById('filterIncorrect');
+
+        // --- INITIALIZATION ---
+        window.onload = function() {
+            startTimer();
+            renderQuestion();
+            renderPalette();
+            setupEventListeners();
+        };
+
+        // --- TIMER ---
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                if (examTimeSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    autoSubmitExam();
+                    return;
+                }
+                examTimeSeconds--;
+                const mins = Math.floor(examTimeSeconds / 60);
+                const secs = examTimeSeconds % 60;
+                timerDisplay.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+                if (examTimeSeconds < 300) {
+                    timerDisplay.parentElement.classList.add('text-rose-400', 'border-rose-800', 'bg-rose-950');
+                }
+            }, 1000);
+        }
+
+        // --- RENDER ACTIVE QUESTION ---
+        function renderQuestion() {
+            const q = examQuestions[currentQuestionIdx];
+            const selectedOpt = userAnswers[currentQuestionIdx];
+
+            // Header progress update
+            const answeredCount = userAnswers.filter(a => a !== null).length;
+            questionProgressText.textContent = `Q ${currentQuestionIdx + 1} of ${examQuestions.length} \u2022 ${answeredCount} Answered`;
+            progressBar.style.width = `${((currentQuestionIdx + 1) / examQuestions.length) * 100}%`;
+
+            // Mobile Option Buttons
+            let optionsHTML = '';
+            q.options.forEach((opt, idx) => {
+                const isSelected = selectedOpt === idx;
+                optionsHTML += `
+                    <button onclick="selectOption(${idx})" class="w-full text-left p-3.5 rounded-xl border text-xs leading-relaxed transition-all active:scale-[0.98] flex items-start space-x-3 ${
+                        isSelected 
+                            ? 'bg-sky-950/70 border-sky-500 text-sky-100 ring-1 ring-sky-500/50 shadow-md' 
+                            : 'bg-slate-950/50 border-slate-800 text-slate-300 hover:bg-slate-850'
+                    }">
+                        <div class="mt-0.5 flex-shrink-0 w-4 h-4 rounded-full border flex items-center justify-center ${
+                            isSelected ? 'border-sky-400 bg-sky-500' : 'border-slate-600'
+                        }">
+                            ${isSelected ? '<div class="w-1.5 h-1.5 rounded-full bg-white"></div>' : ''}
+                        </div>
+                        <span class="flex-1 font-medium">${opt}</span>
+                    </button>
+                `;
+            });
+
+            questionCard.innerHTML = `
+                <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <span class="text-[11px] font-bold font-mono px-2 py-0.5 bg-slate-800 border border-slate-700 text-sky-400 rounded">Q-${q.id}</span>
+                    <span class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Multiple Choice</span>
+                </div>
+                <h2 class="text-sm font-bold text-slate-100 leading-snug">${q.question}</h2>
+                <div class="space-y-2.5 pt-1">
+                    ${optionsHTML}
+                </div>
+            `;
+
+            // Update Bottom Nav Buttons State
+            prevBtn.disabled = currentQuestionIdx === 0;
+            prevBtn.style.opacity = currentQuestionIdx === 0 ? "0.4" : "1";
+            
+            if (currentQuestionIdx === examQuestions.length - 1) {
+                nextBtn.classList.add('hidden');
+            } else {
+                nextBtn.classList.remove('hidden');
+            }
+
+            renderPalette();
+        }
+
+        // --- MODAL PALETTE GRID ---
+        function renderPalette() {
+            let gridHTML = '';
+            examQuestions.forEach((q, idx) => {
+                const isCurrent = idx === currentQuestionIdx;
+                const isAnswered = userAnswers[idx] !== null;
+
+                let classes = "h-10 text-xs font-mono font-bold rounded-lg border flex items-center justify-center transition-all active:scale-95 ";
+                if (isCurrent) {
+                    classes += "bg-sky-500 border-sky-300 text-white shadow-lg ring-2 ring-sky-300/40";
+                } else if (isAnswered) {
+                    classes += "bg-sky-950 border-sky-700 text-sky-300";
+                } else {
+                    classes += "bg-slate-950 border-slate-800 text-slate-400";
+                }
+
+                gridHTML += `
+                    <button onclick="jumpToQuestion(${idx})" class="${classes}">
+                        ${idx + 1}
+                    </button>
+                `;
+            });
+            questionGrid.innerHTML = gridHTML;
+        }
+
+        // --- INTERACTION HANDLERS ---
+        function selectOption(optIdx) {
+            if (examSubmitted) return;
+            userAnswers[currentQuestionIdx] = optIdx;
+            renderQuestion();
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIdx < examQuestions.length - 1) {
+                currentQuestionIdx++;
+                renderQuestion();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestionIdx > 0) {
+                currentQuestionIdx--;
+                renderQuestion();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        function jumpToQuestion(idx) {
+            currentQuestionIdx = idx;
+            renderQuestion();
+            paletteModal.classList.add('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function setupEventListeners() {
+            document.getElementById('openPaletteBtn').addEventListener('click', () => paletteModal.classList.remove('hidden'));
+            document.getElementById('closePaletteBtn').addEventListener('click', () => paletteModal.classList.add('hidden'));
+            
+            document.getElementById('cancelModalBtn').addEventListener('click', () => submitModal.classList.add('hidden'));
+            document.getElementById('confirmSubmitBtn').addEventListener('click', finalizeSubmission);
+
+            filterAllBtn.addEventListener('click', () => filterReview('all'));
+            filterIncorrectBtn.addEventListener('click', () => filterReview('incorrect'));
+        }
+
+        function openSubmitModal() {
+            const unanswered = userAnswers.filter(a => a === null).length;
+            if (unanswered > 0) {
+                modalWarningText.textContent = `Warning: You have ${unanswered} unanswered question(s). Submit your exam now?`;
+            } else {
+                modalWarningText.textContent = `Great! All 50 questions have been answered. Confirm submission?`;
+            }
+            submitModal.classList.remove('hidden');
+        }
+
+        function autoSubmitExam() {
+            submitModal.classList.add('hidden');
+            finalizeSubmission();
+        }
+
+        // --- FINAL SUBMISSION & RESULTS REVIEW ---
+        function finalizeSubmission() {
+            examSubmitted = true;
+            clearInterval(timerInterval);
+            submitModal.classList.add('hidden');
+            paletteModal.classList.add('hidden');
+
+            // Hide Question Card and Bottom Nav
+            questionCard.classList.add('hidden');
+            document.getElementById('mobileBottomNav').classList.add('hidden');
+            document.getElementById('openPaletteBtn').classList.add('hidden');
+            
+            // Show Results
+            resultsContainer.classList.remove('hidden');
+
+            // Calculate Score
+            let correctCount = 0;
+            examQuestions.forEach((q, idx) => {
+                if (userAnswers[idx] === q.correct) {
+                    correctCount++;
+                }
+            });
+
+            const scorePercent = Math.round((correctCount / examQuestions.length) * 100);
+            scoreDisplay.textContent = `${correctCount} / 50`;
+            percentageDisplay.textContent = `${scorePercent}% Score`;
+
+            if (scorePercent >= 85) {
+                scoreVerdict.textContent = "Excellent Mastery! 🏆";
+                scoreFeedback.textContent = "Outstanding result! You demonstrated precise understanding of database concepts and relational models.";
+            } else if (scorePercent >= 70) {
+                scoreVerdict.textContent = "Pass Granted 👍";
+                scoreFeedback.textContent = "Good performance! Review the detailed explanations below to reinforce complex topics.";
+            } else {
+                scoreVerdict.textContent = "Needs Revision 📚";
+                scoreFeedback.textContent = "Review the module explanations below to strengthen key study areas.";
+            }
+
+            renderReviewList('all');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // --- RENDER EXPLANATION REVIEW ---
+        function renderReviewList(filter = 'all') {
+            let listHTML = '';
+
+            examQuestions.forEach((q, idx) => {
+                const userAns = userAnswers[idx];
+                const isCorrect = userAns === q.correct;
+
+                if (filter === 'incorrect' && isCorrect) return;
+
+                let optionsReviewHTML = '';
+                q.options.forEach((opt, optIdx) => {
+                    let borderClass = 'border-slate-800 bg-slate-950/40 text-slate-400';
+                    let badgeHTML = '';
+
+                    if (optIdx === q.correct) {
+                        borderClass = 'border-emerald-600/80 bg-emerald-950/40 text-emerald-200 font-medium';
+                        badgeHTML = '<span class="ml-2 text-[10px] font-bold text-emerald-400 bg-emerald-950 px-1.5 py-0.5 rounded border border-emerald-800"><i class="fa-solid fa-check mr-1"></i>Correct</span>';
+                    } else if (optIdx === userAns && !isCorrect) {
+                        borderClass = 'border-rose-600/80 bg-rose-950/40 text-rose-200';
+                        badgeHTML = '<span class="ml-2 text-[10px] font-bold text-rose-400 bg-rose-950 px-1.5 py-0.5 rounded border border-rose-800"><i class="fa-solid fa-xmark mr-1"></i>Your Selection</span>';
+                    }
+
+                    optionsReviewHTML += `
+                        <div class="p-2.5 rounded-lg border text-xs flex items-center justify-between ${borderClass}">
+                            <span>${opt}</span>
+                            ${badgeHTML}
+                        </div>
+                    `;
+                });
+
+                listHTML += `
+                    <div class="bg-slate-900 border ${isCorrect ? 'border-emerald-900/50' : 'border-rose-900/50'} rounded-xl p-3.5 space-y-3 shadow-md">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="flex items-center space-x-2">
+                                <span class="w-6 h-6 rounded flex items-center justify-center font-mono font-bold text-[11px] ${isCorrect ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-rose-950 text-rose-400 border border-rose-800'}">
+                                    ${q.id}
+                                </span>
+                                <h4 class="text-xs font-bold text-slate-100 leading-snug">${q.question}</h4>
+                            </div>
+                        </div>
+
+                        <div class="space-y-1.5 pt-1">
+                            ${optionsReviewHTML}
+                        </div>
+
+                        <!-- EXPLANATION BOX -->
+                        <div class="p-3 rounded-lg bg-slate-950 border border-sky-900/40 text-[11px] text-slate-300 space-y-1">
+                            <span class="font-bold text-sky-400 flex items-center gap-1 uppercase tracking-wider text-[10px]">
+                                <i class="fa-solid fa-circle-info"></i> Explanation
+                            </span>
+                            <p class="leading-relaxed text-slate-300 pt-0.5">${q.explanation}</p>
+                        </div>
+                    </div>
+                `;
+            });
+
+            if (listHTML === '') {
+                listHTML = `<div class="text-center py-8 text-xs text-slate-500">No incorrect questions! Outstanding performance.</div>`;
+            }
+
+            reviewList.innerHTML = listHTML;
+        }
+
+        function filterReview(type) {
+            if (type === 'all') {
+                filterAllBtn.className = 'px-2.5 py-1 rounded text-[11px] bg-sky-600 text-white font-semibold';
+                filterIncorrectBtn.className = 'px-2.5 py-1 rounded text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold';
+            } else {
+                filterIncorrectBtn.className = 'px-2.5 py-1 rounded text-[11px] bg-sky-600 text-white font-semibold';
+                filterAllBtn.className = 'px-2.5 py-1 rounded text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold';
+            }
+            renderReviewList(type);
+        }
+    </script>
+</body>
+</html>
